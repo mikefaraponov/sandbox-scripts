@@ -1,0 +1,94 @@
+#!/bin/bash
+
+IFS=$'\n'
+db=~/.notes/db
+
+setup() {
+	mkdir -p $db
+}
+
+create() {
+    printf "Type your note name: "
+    read note
+    while [ 1 ]
+    do
+    	printf "Type: " 
+	read punct
+	if [ "$punct" == "exit" ];
+	then
+	  exit 0
+	fi
+	echo "$punct" >> "$db/$note"
+    done
+}
+
+edit() {
+	printf "Type filename to change: "
+	read note
+	printf "Type your action with this file [ediT/rEmove]: "
+	read option
+	if [ "$option" == "E"  ]; then
+		rm $db/$note
+	elif [ "$option" == "T" ]; then
+		cat -n $db/$note
+		printf "Type number of line: "
+		read linenum
+		printf "Type operation with this line [ediT/rEmove]: "
+		read operation
+		if [ "$operation" == "T" ]; then
+			read newnote
+			sed "${linenum}s/.*/$newnote/" -i $db/$note
+			exit 0
+		elif [ "$operation" == "E" ]; then
+			sed "${linenum}d" -i $db/$note 
+			exit 0
+		fi
+	fi
+}
+
+add() {
+	show
+	printf "Type filename to add to: "
+	read note
+	printf "Type new note: "
+	read newnote
+	echo $newnote > "$db/$note"
+	exit 0
+}
+
+show() {
+	echo --------- Notepad ------------
+  for file in `ls $db`; do
+	echo - $file
+	cat -n $db/$file
+  done
+  echo ------------------------------
+}
+
+clean() {
+    rm $db/*
+}
+
+case "$1" in
+    create)
+        create
+	;;
+    add)
+        add
+	;;
+    edit)
+       edit
+       ;;
+    show)
+       show
+       ;;
+    clean)
+       clean
+       ;;
+    setup)
+       setup
+       ;;
+    *)
+        echo "Usage: $0 {create|add|edit|show|clean}"
+	exit 1
+esac
